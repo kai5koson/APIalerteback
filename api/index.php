@@ -1,8 +1,29 @@
 <?php
+// Activer la journalisation des erreurs pour le débogage
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Configuration CORS améliorée - IMPORTANT : Ces en-têtes doivent être envoyés avant tout contenu
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Origin: http://localhost:3010');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+header('Access-Control-Max-Age: 86400'); // 24 heures
+
+// Répondre immédiatement aux requêtes OPTIONS (preflight)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0); // Réponse vide avec statut 200 OK
+}
+
+// Journalisation pour le débogage
+file_put_contents(__DIR__ . '/api_debug.log', 
+    date('[Y-m-d H:i:s] ') . 
+    "Méthode: " . $_SERVER['REQUEST_METHOD'] . 
+    ", URI: " . $_SERVER['REQUEST_URI'] . 
+    ", GET: " . json_encode($_GET) . 
+    PHP_EOL, 
+    FILE_APPEND
+);
 
 // Simuler une base de données avec un fichier JSON
 $dbFile = __DIR__ . '/alertes.json';
