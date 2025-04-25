@@ -7,7 +7,7 @@ error_reporting(E_ALL);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Accept');
+header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Max-Age: 86400'); // 24 heures
 
 // Gérer les requêtes OPTIONS (preflight)
