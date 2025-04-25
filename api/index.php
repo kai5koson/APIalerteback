@@ -3,16 +3,18 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Configuration CORS améliorée - IMPORTANT : Ces en-têtes doivent être envoyés avant tout contenu
+// Configuration CORS - Ces en-têtes doivent être envoyés avant tout contenu
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Accept');
 header('Access-Control-Max-Age: 86400'); // 24 heures
 
-// Répondre immédiatement aux requêtes OPTIONS (preflight)
+// Gérer les requêtes OPTIONS (preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0); // Réponse vide avec statut 200 OK
+    // Renvoyer une réponse vide avec un statut 200 OK
+    http_response_code(200);
+    exit();
 }
 
 // Journalisation pour le débogage
