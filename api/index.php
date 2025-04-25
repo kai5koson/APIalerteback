@@ -1,10 +1,13 @@
 <?php
 // Gérer les en-têtes CORS pour toutes les requêtes
-header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app/');
+header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization');
 header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Max-Age: 86400'); // Cache des préférences CORS pour 24 heures
+
+// Debug - Log la méthode et l'URL pour le diagnostic
+error_log('Méthode HTTP: ' . $_SERVER['REQUEST_METHOD'] . ' - URL: ' . $_SERVER['REQUEST_URI']);
 
 // Répondre immédiatement aux requêtes OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -197,6 +200,13 @@ try {
                     // Supprimer l'alerte
                     $stmt = $db->prepare('DELETE FROM alertes WHERE id = :id');
                     $stmt->execute([':id' => $id]);
+                    
+                    // Log la suppression réussie
+                    error_log("Alerte #$id supprimée avec succès");
+                    
+                    // Assurer que les en-têtes CORS sont toujours présents pour les réponses DELETE
+                    header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
+                    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
                     
                     echo json_encode(["message" => "Alerte supprimée"]);
                 } else {
