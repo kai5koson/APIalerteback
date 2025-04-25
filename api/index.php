@@ -1,14 +1,20 @@
 <?php
 // Gérer les en-têtes CORS pour toutes les requêtes
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
-header('Content-Type: application/json');
+header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization');
+header('Access-Control-Max-Age: 86400'); // Cache des préférences CORS pour 24 heures
 
 // Répondre immédiatement aux requêtes OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Envoi des en-têtes seulement, pas de contenu
     http_response_code(200);
-    exit();
+    exit;
+}
+
+// Si la requête est différente de OPTIONS, définir le Content-Type
+if ($_SERVER['REQUEST_METHOD'] !== 'OPTIONS') {
+    header('Content-Type: application/json');
 }
 
 // Configuration de la base de données SQLite
