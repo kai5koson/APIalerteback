@@ -1,209 +1,87 @@
 <?php
-// Activer la journalisation des erreurs pour le débogage
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-// Configuration CORS - Ces en-têtes doivent être envoyés avant tout contenu
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Accept');
-header('Access-Control-Max-Age: 86400'); // 24 heures
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json');
 
-// Gérer les requêtes OPTIONS (preflight) - TRÈS IMPORTANT POUR CORS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    // Renvoyer une réponse vide avec un statut 200 OK
-    http_response_code(200);
-    exit();
-}
+// Simulation d'une "base de données" simple
+$alertes = [
+    1 => [
+        "id" => 1,
+        "alerte" => "Vague de tempête",
+        "niveau" => "Rouge",
+        "description" => "Des vents violents et des vagues importantes sont attendus.",
+        "zone" => "Côte Normande",
+        "debut" => "2023-10-01 14:00:00",
+        "fin" => "2023-10-02 18:00:00"
+    ],
+    2 => [
+        "id" => 2,
+        "alerte" => "Marée haute",
+        "niveau" => "Orange",
+        "description" => "Risque d’inondation dans les zones basses.",
+        "zone" => "Bretagne",
+        "debut" => "2023-10-05 10:00:00",
+        "fin" => "2023-10-05 15:00:00"
+    ]
+];
 
-// Journalisation pour le débogage
-file_put_contents(__DIR__ . '/api_debug.log', 
-    date('[Y-m-d H:i:s] ') . 
-    "Méthode: " . $_SERVER['REQUEST_METHOD'] . 
-    ", URI: " . $_SERVER['REQUEST_URI'] . 
-    ", GET: " . json_encode($_GET) . 
-    PHP_EOL, 
-    FILE_APPEND
-);
-
-// Simuler une base de données avec un fichier JSON
-$dbFile = __DIR__ . '/alertes.json';
-
-// Créer le fichier s'il n'existe pas
-if (!file_exists($dbFile)) {
-    $alertesInitiales = [
-        [
-            "id" => 1,
-            "alerte" => "Vague de tempête",
-            "niveau" => "Rouge",
-            "description" => "Des vents violents et des vagues importantes sont attendus.",
-            "zone" => "Côte Normande",
-            "debut" => "2023-10-01 14:00:00",
-            "fin" => "2023-10-02 18:00:00"
-        ],
-        [
-            "id" => 2,
-            "alerte" => "Vent Fort",
-            "niveau" => "Orange",
-            "description" => "Rafales de vent atteignant 80 km/h.",
-            "zone" => "Deauville",
-            "debut" => "2023-10-16 09:00:00",
-            "fin" => "2023-10-16 20:00:00"
-        ],
-        [
-            "id" => 3,
-            "alerte" => "Marée Haute",
-            "niveau" => "Jaune",
-            "description" => "Marée exceptionnellement haute prévue.",
-            "zone" => "Port de Deauville",
-            "debut" => "2023-10-17 18:00:00",
-            "fin" => "2023-10-17 22:00:00"
-        ]
-    ];
-    file_put_contents($dbFile, json_encode($alertesInitiales, JSON_PRETTY_PRINT));
-}
-
-// Récupérer les données
-function getAlertes() {
-    global $dbFile;
-    return json_decode(file_get_contents($dbFile), true);
-}
-
-// Sauvegarder les données
-function saveAlertes($alertes) {
-    global $dbFile;
-    file_put_contents($dbFile, json_encode($alertes, JSON_PRETTY_PRINT));
-}
-
-// Traitement des requêtes CRUD
 $method = $_SERVER['REQUEST_METHOD'];
+$input = json_decode(file_get_contents('php://input'), true);
+$id = isset($_GET['id']) ? intval($_GET['id']) : null;
 
 switch ($method) {
     case 'GET':
-        // Récupérer toutes les alertes ou une alerte spécifique
-        if (isset($_GET['id'])) {
-            $alertes = getAlertes();
-            $id = (int)$_GET['id'];
-            $alerte = null;
-            
-            foreach ($alertes as $a) {
-                if ($a['id'] == $id) {
-                    $alerte = $a;
-                    break;
-                }
-            }
-            
-            if ($alerte) {
-                echo json_encode($alerte);
-            } else {
-                http_response_code(404);
-                echo json_encode(["message" => "Alerte non trouvée"]);
-            }
+        if ($id !== null && isset($alertes[$id])) {
+            echo json_encode($alertes[$id], JSON_PRETTY_PRINT);
+        } elseif ($id !== null) {
+            http_response_code(404);
+            echo json_encode(["error" => "Alerte non trouvée"]);
         } else {
-            echo json_encode(getAlertes());
+            echo json_encode(array_values($alertes), JSON_PRETTY_PRINT);
         }
         break;
-        
+
     case 'POST':
-        // Créer une nouvelle alerte
-        $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (!$data) {
-            http_response_code(400);
-            echo json_encode(["message" => "Données invalides"]);
-            break;
-        }
-        
-        $alertes = getAlertes();
-        
-        // Générer un nouvel ID
-        $maxId = 0;
-        foreach ($alertes as $alerte) {
-            if ($alerte['id'] > $maxId) {
-                $maxId = $alerte['id'];
-            }
-        }
-        
-        $data['id'] = $maxId + 1;
-        $alertes[] = $data;
-        
-        saveAlertes($alertes);
-        
-        http_response_code(201);
-        echo json_encode($data);
+        $newId = max(array_keys($alertes)) + 1;
+        $input['id'] = $newId;
+        $alertes[$newId] = $input;
+        echo json_encode([
+            "message" => "Alerte créée",
+            "data" => $alertes[$newId]
+        ], JSON_PRETTY_PRINT);
         break;
-        
+
     case 'PUT':
-        // Mettre à jour une alerte existante
-        if (!isset($_GET['id'])) {
-            http_response_code(400);
-            echo json_encode(["message" => "ID non spécifié"]);
-            break;
-        }
-        
-        $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (!$data) {
-            http_response_code(400);
-            echo json_encode(["message" => "Données invalides"]);
-            break;
-        }
-        
-        $id = (int)$_GET['id'];
-        $alertes = getAlertes();
-        $updated = false;
-        
-        foreach ($alertes as $key => $alerte) {
-            if ($alerte['id'] == $id) {
-                $data['id'] = $id; // Conserver l'ID original
-                $alertes[$key] = $data;
-                $updated = true;
-                break;
-            }
-        }
-        
-        if ($updated) {
-            saveAlertes($alertes);
-            echo json_encode($data);
+        if ($id !== null && isset($alertes[$id])) {
+            $alertes[$id] = array_merge($alertes[$id], $input);
+            echo json_encode([
+                "message" => "Alerte mise à jour",
+                "data" => $alertes[$id]
+            ], JSON_PRETTY_PRINT);
         } else {
             http_response_code(404);
-            echo json_encode(["message" => "Alerte non trouvée"]);
+            echo json_encode(["error" => "Alerte à mettre à jour introuvable"]);
         }
         break;
-        
+
     case 'DELETE':
-        // Supprimer une alerte
-        if (!isset($_GET['id'])) {
-            http_response_code(400);
-            echo json_encode(["message" => "ID non spécifié"]);
-            break;
-        }
-        
-        $id = (int)$_GET['id'];
-        $alertes = getAlertes();
-        $deleted = false;
-        
-        foreach ($alertes as $key => $alerte) {
-            if ($alerte['id'] == $id) {
-                array_splice($alertes, $key, 1);
-                $deleted = true;
-                break;
-            }
-        }
-        
-        if ($deleted) {
-            saveAlertes($alertes);
-            echo json_encode(["message" => "Alerte supprimée avec succès"]);
+        if ($id !== null && isset($alertes[$id])) {
+            unset($alertes[$id]);
+            echo json_encode(["message" => "Alerte supprimée"]);
         } else {
             http_response_code(404);
-            echo json_encode(["message" => "Alerte non trouvée"]);
+            echo json_encode(["error" => "Alerte à supprimer introuvable"]);
         }
         break;
-        
+
+    case 'OPTIONS':
+        http_response_code(204);
+        break;
+
     default:
         http_response_code(405);
-        echo json_encode(["message" => "Méthode non autorisée"]);
+        echo json_encode(["error" => "Méthode non autorisée"]);
         break;
 }
 ?>
