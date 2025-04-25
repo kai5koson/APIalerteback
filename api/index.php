@@ -4,11 +4,10 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Configuration CORS améliorée - IMPORTANT : Ces en-têtes doivent être envoyés avant tout contenu
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:3010');
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
-header('Access-Control-Max-Age: 86400'); // 24 heures
+header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Type: application/json');
 
 // Répondre immédiatement aux requêtes OPTIONS (preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
