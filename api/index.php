@@ -1,6 +1,6 @@
 <?php
 // Gérer les en-têtes CORS pour toutes les requêtes
-header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
+header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app/');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization');
 header('Access-Control-Allow-Credentials: true');
