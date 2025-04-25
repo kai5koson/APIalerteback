@@ -3,6 +3,7 @@
 header('Access-Control-Allow-Origin: https://ap-ialerte.vercel.app');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With, Authorization');
+header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Max-Age: 86400'); // Cache des préférences CORS pour 24 heures
 
 // Répondre immédiatement aux requêtes OPTIONS
